@@ -27,15 +27,20 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     @PostConstruct
     public void createDefaultAdmin() {
         if (userRepository.findByUsername("admin").isEmpty()) {
             User admin = new User();
             admin.setUsername("admin");
             admin.setEmail("admin@example.com");
-            admin.setPassword("password");
-            admin.setRole("ADMIN");
-            saveUser(admin);
+            admin.setPassword(passwordEncoder.encode("password"));
+            admin.setRole("ROLE_ADMIN");
+            userRepository.save(admin);
         }
     }
 }

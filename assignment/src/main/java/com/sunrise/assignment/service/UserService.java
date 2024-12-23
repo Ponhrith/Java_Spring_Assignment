@@ -1,5 +1,6 @@
 package com.sunrise.assignment.service;
 
+import com.sunrise.assignment.exception.UserAlreadyExistsException;
 import com.sunrise.assignment.model.User;
 import com.sunrise.assignment.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,12 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User saveUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new UserAlreadyExistsException("Username already exists: " + user.getUsername());
+        }
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException("Email already exists: " + user.getEmail());
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }

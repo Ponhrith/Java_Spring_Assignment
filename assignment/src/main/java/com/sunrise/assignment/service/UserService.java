@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -42,5 +43,27 @@ public class UserService {
             admin.setRole("ROLE_ADMIN");
             userRepository.save(admin);
         }
+    }
+
+    // Update user
+    public Optional<User> updateUser(Long id, User updatedUser) {
+        return userRepository.findById(id).map(existingUser -> {
+            existingUser.setUsername(updatedUser.getUsername());
+            existingUser.setEmail(updatedUser.getEmail());
+            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+                existingUser.setPassword(updatedUser.getPassword()); // Assume password is encoded at the controller/service level
+            }
+            existingUser.setRole(updatedUser.getRole());
+            return userRepository.save(existingUser);
+        });
+    }
+
+    // Delete user
+    public boolean deleteUser(Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

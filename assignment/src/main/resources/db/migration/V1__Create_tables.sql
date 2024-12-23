@@ -5,58 +5,80 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(255) DEFAULT 'user',
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Categories table
 CREATE TABLE categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    createdBy INT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedBy INT,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (createdBy) REFERENCES users(id),
-    FOREIGN KEY (updatedBy) REFERENCES users(id)
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
 );
 
 -- Products table
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    categoryId INT NOT NULL,
+    category_id INT NOT NULL,
     cost DECIMAL(10, 2) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     qty INT DEFAULT 0,
-    createdBy INT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedBy INT,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (categoryId) REFERENCES categories(id),
-    FOREIGN KEY (createdBy) REFERENCES users(id),
-    FOREIGN KEY (updatedBy) REFERENCES users(id)
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
 );
 
 -- Purchase Orders table
-CREATE TABLE purchaseOrders (
+CREATE TABLE purchase_orders (
     id SERIAL PRIMARY KEY,
-    productId INT NOT NULL,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Purchase Order Items table
+CREATE TABLE purchase_order_items (
+    id SERIAL PRIMARY KEY,
+    purchase_order_id INT NOT NULL,
+    product_id INT NOT NULL,
     quantity INT NOT NULL,
-    purchasePrice DECIMAL(10, 2) NOT NULL,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (productId) REFERENCES products(id)
+    purchase_price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
 -- Sale Orders table
-CREATE TABLE saleOrders (
+CREATE TABLE sale_orders (
     id SERIAL PRIMARY KEY,
-    productId INT NOT NULL,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Sale Order Items table
+CREATE TABLE sale_order_items (
+    id SERIAL PRIMARY KEY,
+    sale_order_id INT NOT NULL,
+    product_id INT NOT NULL,
     quantity INT NOT NULL,
-    salePrice DECIMAL(10, 2) NOT NULL,
-    costAtSale DECIMAL(10, 2) NOT NULL,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (productId) REFERENCES products(id)
+    sale_price DECIMAL(10, 2) NOT NULL,
+    cost_at_sale DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (sale_order_id) REFERENCES sale_orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );

@@ -21,24 +21,20 @@ public class ProductService {
     @Autowired
     private UserService userService;
 
-    // Retrieve all products
-
+    // Retrieve active products
     public List<Product> getAllProducts() {
         return productRepository.findAll().stream()
-                .filter(Product::isActive) // Only return active products
+                .filter(Product::isActive)
                 .collect(Collectors.toList());
     }
 
-
-
-
-    // Retrieve a specific product by ID
+    // Retrieve product by ID
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + id));
     }
 
-    // Create a new product
+    // Create a product
     public Product createProduct(Product product) {
         if (productRepository.existsByName(product.getName())) {
             throw new DuplicateResourceException("Product with name '" + product.getName() + "' already exists.");
@@ -50,16 +46,19 @@ public class ProductService {
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
 
+        // Initialize cost and quantity
+        product.setCost(0.0);
+        product.setQty(0);
+
         return productRepository.save(product);
     }
 
-    // Update an existing product
+    // Update product details (excluding inventory)
     public Product updateProduct(Long id, Product productDetails) {
         Product product = getProductById(id);
 
         product.setName(productDetails.getName());
         product.setCategory(productDetails.getCategory());
-        product.setPrice(productDetails.getPrice());
 
         User currentUser = userService.getCurrentUser();
         product.setUpdatedBy(currentUser);
@@ -68,29 +67,30 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    // Delete a product
+    // Soft delete a product
     public void deleteProduct(Long id) {
-        Product product = getProductById(id); // Ensure the product exists
-        product.setActive(false); // Mark as inactive
-        productRepository.save(product); // Save changes
+        Product product = getProductById(id);
+        product.setActive(false);
+        productRepository.save(product);
     }
 
-
-
-    // Helper method to update inventory and cost
-    public void updateInventoryAndCost(Long productId, int quantity, double costPerUnit) {
+    // Update inventory and cost dynamically
+    public void updateInventoryAndCost(Long productId, int quantityChange, double costChange) {
         Product product = getProductById(productId);
 
-        // Update inventory
-        int updatedQty = product.getQty() + quantity;
+        if (quantityChange > 0) { // Purchase Order
+            double totalCost = (product.getCost() * product.getQty()) + (costChange * quantityChange);
+            int totalQty = product.getQty() + quantityChange;
+            product.setCost(totalQty == 0 ? 0.0 : totalCost / totalQty);
+            product.setQty(totalQty);
+        } else { // Sale Order
+            int updatedQty = product.getQty() + quantityChange;
+            if (updatedQty < 0) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            }
+            product.setQty(updatedQty);
+        }
 
-        // Recalculate cost (weighted average)
-        double updatedCost = ((product.getCost() * product.getQty()) + (costPerUnit * quantity)) / updatedQty;
-
-        product.setQty(updatedQty);
-        product.setCost(updatedCost);
-
-        // Save updated product
         productRepository.save(product);
     }
 }

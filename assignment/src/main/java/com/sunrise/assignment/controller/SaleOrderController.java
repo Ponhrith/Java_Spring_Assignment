@@ -18,16 +18,13 @@ public class SaleOrderController {
 
     @GetMapping
     public ResponseEntity<List<SaleOrderResponseDTO>> getAllSaleOrders() {
-        // The service already returns a list of SaleOrderResponseDTO, no need to map again
         List<SaleOrderResponseDTO> saleOrders = saleOrderService.getAllSaleOrders();
         return ResponseEntity.ok(saleOrders);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SaleOrderResponseDTO> getSaleOrderById(@PathVariable Long id) {
-        // Directly map the SaleOrder to its DTO
-        SaleOrder saleOrder = saleOrderService.getSaleOrderById(id);
-        SaleOrderResponseDTO response = saleOrderService.mapToDTO(saleOrder);
+        SaleOrderResponseDTO response = saleOrderService.getSaleOrderResponseById(id);
         return ResponseEntity.ok(response);
     }
 

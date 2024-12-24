@@ -1,17 +1,15 @@
 package com.sunrise.assignment.service;
 
+import com.sunrise.assignment.dto.SaleOrderResponseDTO;
+import com.sunrise.assignment.dto.SaleOrderItemDTO;
 import com.sunrise.assignment.exception.ResourceNotFoundException;
 import com.sunrise.assignment.model.SaleOrder;
 import com.sunrise.assignment.model.SaleOrderItem;
-import com.sunrise.assignment.model.Product;
 import com.sunrise.assignment.model.User;
-import com.sunrise.assignment.repository.SaleOrderItemRepository;
 import com.sunrise.assignment.repository.SaleOrderRepository;
-import com.sunrise.assignment.repository.ProductRepository;
-import com.sunrise.assignment.dto.SaleOrderResponseDTO;
-import com.sunrise.assignment.dto.SaleOrderItemDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,10 +21,7 @@ public class SaleOrderService {
     private SaleOrderRepository saleOrderRepository;
 
     @Autowired
-    private SaleOrderItemRepository saleOrderItemRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
+    private ProductService productService;
 
     @Autowired
     private UserService userService;
@@ -38,41 +33,32 @@ public class SaleOrderService {
                 .collect(Collectors.toList());
     }
 
-    public SaleOrder getSaleOrderById(Long id) {
-        return saleOrderRepository.findById(id)
+    public SaleOrderResponseDTO getSaleOrderResponseById(Long id) {
+        SaleOrder saleOrder = saleOrderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale Order not found with ID: " + id));
+        return mapToDTO(saleOrder);
     }
 
+    @Transactional
     public SaleOrderResponseDTO createSaleOrder(SaleOrder saleOrder) {
-        // Get the current authenticated user
         User currentUser = userService.getCurrentUser();
         saleOrder.setCreatedBy(currentUser);
 
-        // Process SaleOrderItems
         for (SaleOrderItem item : saleOrder.getItems()) {
-            Product product = productRepository.findById(item.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + item.getProduct().getId()));
+            productService.updateInventoryAndCost(
+                    item.getProduct().getId(),
+                    -item.getQuantity(),
+                    0
+            );
 
-            // Check inventory and reduce quantity
-            if (product.getQty() < item.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
-            }
-            product.setQty(product.getQty() - item.getQuantity());
-
-            // Set cost at sale
-            item.setCostAtSale(product.getCost());
+            item.setCostAtSale(productService.getProductById(item.getProduct().getId()).getCost());
             item.setSaleOrder(saleOrder);
-
-            productRepository.save(product);
         }
 
         SaleOrder savedSaleOrder = saleOrderRepository.save(saleOrder);
-
-        // Map to DTO for cleaner response
         return mapToDTO(savedSaleOrder);
     }
 
-    // Update visibility to public
     public SaleOrderResponseDTO mapToDTO(SaleOrder saleOrder) {
         SaleOrderResponseDTO dto = new SaleOrderResponseDTO();
         dto.setId(saleOrder.getId());

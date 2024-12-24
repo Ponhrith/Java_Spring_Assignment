@@ -19,25 +19,16 @@ public class Product {
     private Category category;
 
     @Column(name = "cost", nullable = false)
-    private Double cost;
+    private Double cost = 0.0; // Default cost to 0
 
     @Column(name = "price", nullable = false)
-    private Double price;
+    private Double price = 0.0; // Default price to 0
 
     @Column(name = "qty", nullable = false)
-    private Integer qty = 0;
+    private Integer qty = 0; // Default quantity to 0
 
     @Column(nullable = false)
     private boolean isActive = true;
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
-    }
-
 
     @ManyToOne
     @JoinColumn(name = "created_by")
@@ -100,6 +91,14 @@ public class Product {
 
     public void setQty(Integer qty) {
         this.qty = qty;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public User getCreatedBy() {

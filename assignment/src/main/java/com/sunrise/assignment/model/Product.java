@@ -27,6 +27,18 @@ public class Product {
     @Column(name = "qty", nullable = false)
     private Integer qty = 0;
 
+    @Column(nullable = false)
+    private boolean isActive = true;
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+
     @ManyToOne
     @JoinColumn(name = "created_by")
     private User createdBy;

@@ -31,8 +31,11 @@ public class SaleOrderService {
     @Autowired
     private UserService userService;
 
-    public List<SaleOrder> getAllSaleOrders() {
-        return saleOrderRepository.findAll();
+    public List<SaleOrderResponseDTO> getAllSaleOrders() {
+        return saleOrderRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     public SaleOrder getSaleOrderById(Long id) {
@@ -69,6 +72,7 @@ public class SaleOrderService {
         return mapToDTO(savedSaleOrder);
     }
 
+    // Update visibility to public
     public SaleOrderResponseDTO mapToDTO(SaleOrder saleOrder) {
         SaleOrderResponseDTO dto = new SaleOrderResponseDTO();
         dto.setId(saleOrder.getId());

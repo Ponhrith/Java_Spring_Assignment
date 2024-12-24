@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sale-orders")
@@ -18,17 +17,18 @@ public class SaleOrderController {
     private SaleOrderService saleOrderService;
 
     @GetMapping
-    public List<SaleOrderResponseDTO> getAllSaleOrders() {
-        return saleOrderService.getAllSaleOrders()
-                .stream()
-                .map(saleOrderService::mapToDTO) // Map each SaleOrder to its DTO
-                .collect(Collectors.toList());
+    public ResponseEntity<List<SaleOrderResponseDTO>> getAllSaleOrders() {
+        // The service already returns a list of SaleOrderResponseDTO, no need to map again
+        List<SaleOrderResponseDTO> saleOrders = saleOrderService.getAllSaleOrders();
+        return ResponseEntity.ok(saleOrders);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SaleOrderResponseDTO> getSaleOrderById(@PathVariable Long id) {
+        // Directly map the SaleOrder to its DTO
         SaleOrder saleOrder = saleOrderService.getSaleOrderById(id);
-        return ResponseEntity.ok(saleOrderService.mapToDTO(saleOrder)); // Map the SaleOrder to its DTO
+        SaleOrderResponseDTO response = saleOrderService.mapToDTO(saleOrder);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping

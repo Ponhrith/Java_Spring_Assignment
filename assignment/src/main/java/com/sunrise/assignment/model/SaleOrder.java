@@ -2,6 +2,7 @@ package com.sunrise.assignment.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,11 +17,22 @@ public class SaleOrder {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "saleOrder", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SaleOrderItem> items;
+    private List<SaleOrderItem> items = new ArrayList<>();
+
+    // Helper methods for bidirectional relationship
+    public void addItem(SaleOrderItem item) {
+        items.add(item);
+        item.setSaleOrder(this);
+    }
+
+    public void removeItem(SaleOrderItem item) {
+        items.remove(item);
+        item.setSaleOrder(null);
+    }
 
     // Getters and Setters
     public Long getId() {

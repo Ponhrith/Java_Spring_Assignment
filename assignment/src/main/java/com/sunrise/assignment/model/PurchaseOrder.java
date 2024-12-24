@@ -17,13 +17,13 @@ public class PurchaseOrder {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseOrderItem> items = new ArrayList<>();
 
-    // Add helper methods to manage the bidirectional relationship
+    // Helper methods for bidirectional relationship
     public void addItem(PurchaseOrderItem item) {
         items.add(item);
         item.setPurchaseOrder(this);

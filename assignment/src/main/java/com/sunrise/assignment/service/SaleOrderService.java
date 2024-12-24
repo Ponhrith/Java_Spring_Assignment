@@ -3,6 +3,7 @@ package com.sunrise.assignment.service;
 import com.sunrise.assignment.dto.SaleOrderResponseDTO;
 import com.sunrise.assignment.dto.SaleOrderItemDTO;
 import com.sunrise.assignment.exception.ResourceNotFoundException;
+import com.sunrise.assignment.model.Product;
 import com.sunrise.assignment.model.SaleOrder;
 import com.sunrise.assignment.model.SaleOrderItem;
 import com.sunrise.assignment.model.User;
@@ -45,19 +46,33 @@ public class SaleOrderService {
         saleOrder.setCreatedBy(currentUser);
 
         for (SaleOrderItem item : saleOrder.getItems()) {
+            Product product = productService.getProductById(item.getProduct().getId());
+
+            if (product.getQty() < item.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            }
+
+            // Reduce product quantity
             productService.updateInventoryAndCost(
-                    item.getProduct().getId(),
+                    product.getId(),
                     -item.getQuantity(),
-                    0
+                    0 // No cost update during sale
             );
 
-            item.setCostAtSale(productService.getProductById(item.getProduct().getId()).getCost());
+            // Update product price to the latest sale price
+            product.setPrice(item.getSalePrice());
+
+            // Save updated product
+            productService.updateProduct(product.getId(), product);
+
+            item.setCostAtSale(product.getCost());
             item.setSaleOrder(saleOrder);
         }
 
         SaleOrder savedSaleOrder = saleOrderRepository.save(saleOrder);
         return mapToDTO(savedSaleOrder);
     }
+
 
     public SaleOrderResponseDTO mapToDTO(SaleOrder saleOrder) {
         SaleOrderResponseDTO dto = new SaleOrderResponseDTO();

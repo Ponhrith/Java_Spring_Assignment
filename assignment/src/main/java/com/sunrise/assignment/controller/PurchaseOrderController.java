@@ -1,5 +1,6 @@
 package com.sunrise.assignment.controller;
 
+import com.sunrise.assignment.dto.PurchaseOrderResponseDTO;
 import com.sunrise.assignment.model.PurchaseOrder;
 import com.sunrise.assignment.service.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,20 +17,20 @@ public class PurchaseOrderController {
     private PurchaseOrderService purchaseOrderService;
 
     @GetMapping
-    public List<PurchaseOrder> getAllPurchaseOrders() {
-        return purchaseOrderService.getAllPurchaseOrders();
+    public ResponseEntity<List<PurchaseOrderResponseDTO>> getAllPurchaseOrders() {
+        List<PurchaseOrderResponseDTO> purchaseOrders = purchaseOrderService.getAllPurchaseOrders();
+        return ResponseEntity.ok(purchaseOrders);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PurchaseOrder> getPurchaseOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(purchaseOrderService.getPurchaseOrderById(id));
+    public ResponseEntity<PurchaseOrderResponseDTO> getPurchaseOrderById(@PathVariable Long id) {
+        PurchaseOrderResponseDTO purchaseOrder = purchaseOrderService.getPurchaseOrderById(id);
+        return ResponseEntity.ok(purchaseOrder);
     }
 
     @PostMapping
-    public ResponseEntity<PurchaseOrder> createPurchaseOrder(@RequestBody PurchaseOrder purchaseOrder) {
-        // Log received purchase order
-        System.out.println("Received PurchaseOrder: " + purchaseOrder);
-        return ResponseEntity.ok(purchaseOrderService.createPurchaseOrder(purchaseOrder));
+    public ResponseEntity<PurchaseOrderResponseDTO> createPurchaseOrder(@RequestBody PurchaseOrder purchaseOrder) {
+        PurchaseOrderResponseDTO createdPurchaseOrder = purchaseOrderService.createPurchaseOrder(purchaseOrder);
+        return ResponseEntity.ok(createdPurchaseOrder);
     }
-
 }

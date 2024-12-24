@@ -1,9 +1,6 @@
 package com.sunrise.assignment.handler;
 
-import com.sunrise.assignment.exception.DuplicateCategoryException;
-import com.sunrise.assignment.exception.UserAlreadyExistsException;
-import com.sunrise.assignment.exception.ResourceNotFoundException;
-import com.sunrise.assignment.exception.DuplicateResourceException;
+import com.sunrise.assignment.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +16,11 @@ public class GlobalExceptionHandler {
     // Handle UserAlreadyExistsException
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<String> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<String> handleInvalidPasswordException(InvalidPasswordException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

@@ -1,5 +1,6 @@
 package com.sunrise.assignment.service;
 
+import com.sunrise.assignment.exception.InvalidPasswordException;
 import com.sunrise.assignment.exception.UserAlreadyExistsException;
 import com.sunrise.assignment.model.User;
 import com.sunrise.assignment.repository.UserRepository;
@@ -29,9 +30,28 @@ public class UserService {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("Email already exists: " + user.getEmail());
         }
+
+        // Validate password
+        validatePassword(user.getPassword());
+
+        // Encode the password and save the user
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
+
+
+    private void validatePassword(String password) {
+        if (password == null || password.length() < 6) {
+            throw new InvalidPasswordException("Password must be at least 6 characters long");
+        }
+        if (!password.matches(".*[A-Za-z].*")) {
+            throw new InvalidPasswordException("Password must contain at least one letter");
+        }
+        if (!password.matches(".*\\d.*")) {
+            throw new InvalidPasswordException("Password must contain at least one number");
+        }
+    }
+
 
     public List<User> getAllUsers() {
         return userRepository.findAll();

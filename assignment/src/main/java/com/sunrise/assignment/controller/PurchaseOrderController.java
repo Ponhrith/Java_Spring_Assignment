@@ -27,6 +27,9 @@ public class PurchaseOrderController {
 
     @PostMapping
     public ResponseEntity<PurchaseOrder> createPurchaseOrder(@RequestBody PurchaseOrder purchaseOrder) {
+        // Log received purchase order
+        System.out.println("Received PurchaseOrder: " + purchaseOrder);
         return ResponseEntity.ok(purchaseOrderService.createPurchaseOrder(purchaseOrder));
     }
+
 }

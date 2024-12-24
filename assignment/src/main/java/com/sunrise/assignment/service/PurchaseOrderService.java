@@ -4,10 +4,14 @@ import com.sunrise.assignment.exception.ResourceNotFoundException;
 import com.sunrise.assignment.model.PurchaseOrder;
 import com.sunrise.assignment.model.PurchaseOrderItem;
 import com.sunrise.assignment.model.Product;
+import com.sunrise.assignment.model.User;
 import com.sunrise.assignment.repository.PurchaseOrderItemRepository;
 import com.sunrise.assignment.repository.PurchaseOrderRepository;
 import com.sunrise.assignment.repository.ProductRepository;
+import com.sunrise.assignment.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +28,12 @@ public class PurchaseOrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
     public List<PurchaseOrder> getAllPurchaseOrders() {
         return purchaseOrderRepository.findAll();
     }
@@ -34,22 +44,17 @@ public class PurchaseOrderService {
     }
 
     public PurchaseOrder createPurchaseOrder(PurchaseOrder purchaseOrder) {
-        // Save PurchaseOrder and associated items
-        PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
+        // Use unified getCurrentUser method
+        User currentUser = userService.getCurrentUser();
+        purchaseOrder.setCreatedBy(currentUser);
 
-        for (PurchaseOrderItem item : purchaseOrder.getItems()) {
-            // Update Product Quantity
-            Product product = productRepository.findById(item.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + item.getProduct().getId()));
+        // Link items to the purchase order
+        purchaseOrder.getItems().forEach(item -> {
+            item.setPurchaseOrder(purchaseOrder);
+        });
 
-            product.setQty(product.getQty() + item.getQuantity());
-            productRepository.save(product);
-
-            // Save PurchaseOrderItem
-            item.setPurchaseOrder(savedOrder);
-            purchaseOrderItemRepository.save(item);
-        }
-
-        return savedOrder;
+        return purchaseOrderRepository.save(purchaseOrder);
     }
+
+
 }

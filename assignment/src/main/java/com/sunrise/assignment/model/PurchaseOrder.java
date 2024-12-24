@@ -2,6 +2,7 @@ package com.sunrise.assignment.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,14 +14,25 @@ public class PurchaseOrder {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "created_by")
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL)
-    private List<PurchaseOrderItem> items;
+    @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseOrderItem> items = new ArrayList<>();
+
+    // Add helper methods to manage the bidirectional relationship
+    public void addItem(PurchaseOrderItem item) {
+        items.add(item);
+        item.setPurchaseOrder(this);
+    }
+
+    public void removeItem(PurchaseOrderItem item) {
+        items.remove(item);
+        item.setPurchaseOrder(null);
+    }
 
     // Getters and Setters
     public Long getId() {

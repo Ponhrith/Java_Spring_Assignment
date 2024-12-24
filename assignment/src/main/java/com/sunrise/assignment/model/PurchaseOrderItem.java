@@ -1,6 +1,7 @@
 package com.sunrise.assignment.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "purchase_order_items")
@@ -23,6 +24,9 @@ public class PurchaseOrderItem {
 
     @Column(nullable = false)
     private Double purchasePrice;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // Getters and Setters
     public Long getId() {
@@ -63,5 +67,13 @@ public class PurchaseOrderItem {
 
     public void setPurchasePrice(Double purchasePrice) {
         this.purchasePrice = purchasePrice;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

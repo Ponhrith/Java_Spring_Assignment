@@ -4,6 +4,8 @@ import com.sunrise.assignment.exception.UserAlreadyExistsException;
 import com.sunrise.assignment.model.User;
 import com.sunrise.assignment.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +60,7 @@ public class UserService {
             existingUser.setUsername(updatedUser.getUsername());
             existingUser.setEmail(updatedUser.getEmail());
             if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-                existingUser.setPassword(updatedUser.getPassword()); // Assume password is encoded at the controller/service level
+                existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
             existingUser.setRole(updatedUser.getRole());
             return userRepository.save(existingUser);
@@ -72,5 +74,22 @@ public class UserService {
             return true;
         }
         return false;
+    }
+
+    // Retrieve the currently authenticated user
+    public User getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            String username = ((UserDetails) principal).getUsername();
+            return userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found in the database"));
+        } else if (principal instanceof String) {
+            // If the principal is directly a string (username)
+            return userRepository.findByUsername((String) principal)
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found in the database"));
+        } else {
+            throw new RuntimeException("User not authenticated");
+        }
     }
 }

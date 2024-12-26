@@ -1,19 +1,28 @@
 version: '3.8'
 services:
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sunrisedb
+
   app:
     build:
-      context: /Users/ponhrithnhep/Documents/Coding_Projects/Sunrise_Assignment/Java_Spring_Assignment/assignment
+      context: .
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://java-spring-assignment:5432/sunrisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/sunrisedb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+    depends_on:
+      - db
     networks:
       - existing_network
-
 networks:
   existing_network:
     driver: bridge
-

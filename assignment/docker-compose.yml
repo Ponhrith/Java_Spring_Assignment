@@ -1,17 +1,22 @@
 version: '3.8'
+
 services:
   db:
     image: postgres:15
+    container_name: assignment-db
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: sunrisedb
+    networks:
+      - existing_network
 
   app:
     build:
       context: .
+    container_name: assignment-app
     ports:
       - "8080:8080"
     environment:
@@ -23,6 +28,7 @@ services:
       - db
     networks:
       - existing_network
+
 networks:
   existing_network:
     driver: bridge

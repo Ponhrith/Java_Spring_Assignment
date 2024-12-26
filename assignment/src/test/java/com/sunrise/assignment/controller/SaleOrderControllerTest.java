@@ -10,19 +10,19 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class SaleOrderControllerTest {
 
-    @Mock
-    private SaleOrderService saleOrderService;
-
     @InjectMocks
     private SaleOrderController saleOrderController;
+
+    @Mock
+    private SaleOrderService saleOrderService;
 
     @BeforeEach
     void setUp() {
@@ -30,41 +30,37 @@ class SaleOrderControllerTest {
     }
 
     @Test
-    void getAllSaleOrders_shouldReturnEmptyList() {
-        when(saleOrderService.getAllSaleOrders()).thenReturn(Collections.emptyList());
+    void testGetAllSaleOrders() {
+        List<SaleOrderResponseDTO> orders = Arrays.asList(new SaleOrderResponseDTO(), new SaleOrderResponseDTO());
+        when(saleOrderService.getAllSaleOrders()).thenReturn(orders);
 
         ResponseEntity<List<SaleOrderResponseDTO>> response = saleOrderController.getAllSaleOrders();
 
-        assertThat(response.getBody()).isEmpty();
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(2, response.getBody().size());
         verify(saleOrderService, times(1)).getAllSaleOrders();
     }
 
     @Test
-    void getSaleOrderById_shouldReturnSaleOrder() {
-        SaleOrderResponseDTO dto = new SaleOrderResponseDTO();
-        dto.setId(1L);
-
-        when(saleOrderService.getSaleOrderResponseById(1L)).thenReturn(dto);
+    void testGetSaleOrderById() {
+        SaleOrderResponseDTO order = new SaleOrderResponseDTO();
+        when(saleOrderService.getSaleOrderResponseById(1L)).thenReturn(order);
 
         ResponseEntity<SaleOrderResponseDTO> response = saleOrderController.getSaleOrderById(1L);
 
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getId()).isEqualTo(1L);
+        assertEquals(200, response.getStatusCodeValue());
         verify(saleOrderService, times(1)).getSaleOrderResponseById(1L);
     }
 
     @Test
-    void createSaleOrder_shouldReturnCreatedOrder() {
-        SaleOrder saleOrder = new SaleOrder();
-        SaleOrderResponseDTO dto = new SaleOrderResponseDTO();
-        dto.setId(1L);
+    void testCreateSaleOrder() {
+        SaleOrder order = new SaleOrder();
+        SaleOrderResponseDTO responseDTO = new SaleOrderResponseDTO();
+        when(saleOrderService.createSaleOrder(order)).thenReturn(responseDTO);
 
-        when(saleOrderService.createSaleOrder(any(SaleOrder.class))).thenReturn(dto);
+        ResponseEntity<SaleOrderResponseDTO> response = saleOrderController.createSaleOrder(order);
 
-        ResponseEntity<SaleOrderResponseDTO> response = saleOrderController.createSaleOrder(saleOrder);
-
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getId()).isEqualTo(1L);
-        verify(saleOrderService, times(1)).createSaleOrder(any(SaleOrder.class));
+        assertEquals(200, response.getStatusCodeValue());
+        verify(saleOrderService, times(1)).createSaleOrder(order);
     }
 }

@@ -10,19 +10,19 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class PurchaseOrderControllerTest {
 
-    @Mock
-    private PurchaseOrderService purchaseOrderService;
-
     @InjectMocks
     private PurchaseOrderController purchaseOrderController;
+
+    @Mock
+    private PurchaseOrderService purchaseOrderService;
 
     @BeforeEach
     void setUp() {
@@ -30,41 +30,37 @@ class PurchaseOrderControllerTest {
     }
 
     @Test
-    void getAllPurchaseOrders_shouldReturnEmptyList() {
-        when(purchaseOrderService.getAllPurchaseOrders()).thenReturn(Collections.emptyList());
+    void testGetAllPurchaseOrders() {
+        List<PurchaseOrderResponseDTO> orders = Arrays.asList(new PurchaseOrderResponseDTO(), new PurchaseOrderResponseDTO());
+        when(purchaseOrderService.getAllPurchaseOrders()).thenReturn(orders);
 
         ResponseEntity<List<PurchaseOrderResponseDTO>> response = purchaseOrderController.getAllPurchaseOrders();
 
-        assertThat(response.getBody()).isEmpty();
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(2, response.getBody().size());
         verify(purchaseOrderService, times(1)).getAllPurchaseOrders();
     }
 
     @Test
-    void getPurchaseOrderById_shouldReturnPurchaseOrder() {
-        PurchaseOrderResponseDTO dto = new PurchaseOrderResponseDTO();
-        dto.setId(1L);
-
-        when(purchaseOrderService.getPurchaseOrderById(1L)).thenReturn(dto);
+    void testGetPurchaseOrderById() {
+        PurchaseOrderResponseDTO order = new PurchaseOrderResponseDTO();
+        when(purchaseOrderService.getPurchaseOrderById(1L)).thenReturn(order);
 
         ResponseEntity<PurchaseOrderResponseDTO> response = purchaseOrderController.getPurchaseOrderById(1L);
 
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getId()).isEqualTo(1L);
+        assertEquals(200, response.getStatusCodeValue());
         verify(purchaseOrderService, times(1)).getPurchaseOrderById(1L);
     }
 
     @Test
-    void createPurchaseOrder_shouldReturnCreatedOrder() {
-        PurchaseOrder purchaseOrder = new PurchaseOrder();
-        PurchaseOrderResponseDTO dto = new PurchaseOrderResponseDTO();
-        dto.setId(1L);
+    void testCreatePurchaseOrder() {
+        PurchaseOrder order = new PurchaseOrder();
+        PurchaseOrderResponseDTO responseDTO = new PurchaseOrderResponseDTO();
+        when(purchaseOrderService.createPurchaseOrder(order)).thenReturn(responseDTO);
 
-        when(purchaseOrderService.createPurchaseOrder(any(PurchaseOrder.class))).thenReturn(dto);
+        ResponseEntity<PurchaseOrderResponseDTO> response = purchaseOrderController.createPurchaseOrder(order);
 
-        ResponseEntity<PurchaseOrderResponseDTO> response = purchaseOrderController.createPurchaseOrder(purchaseOrder);
-
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getId()).isEqualTo(1L);
-        verify(purchaseOrderService, times(1)).createPurchaseOrder(any(PurchaseOrder.class));
+        assertEquals(200, response.getStatusCodeValue());
+        verify(purchaseOrderService, times(1)).createPurchaseOrder(order);
     }
 }

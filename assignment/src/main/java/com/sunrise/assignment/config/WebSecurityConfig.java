@@ -29,6 +29,7 @@ public class WebSecurityConfig {
                         .requestMatchers(
                                 "/v3/api-docs/**", // Allow access to OpenAPI documentation
                                 "/swagger-ui.html",
+                                "/swagger-ui/index.html",
                                 "/swagger-ui/**"
                         ).permitAll()
                         .anyRequest().authenticated() // All other requests require authentication
@@ -38,27 +39,17 @@ public class WebSecurityConfig {
         return http.build();
     }
 
+
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // Allow all origins (you can restrict this to specific origins if needed)
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }
-
-    private UrlBasedCorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:8080"); // Allow Swagger UI origin
+        config.addAllowedOriginPattern("*"); // Allow all origins
         config.addAllowedHeader("*"); // Allow all headers
         config.addAllowedMethod("*"); // Allow all methods
         source.registerCorsConfiguration("/**", config);
-        return source;
+        return new CorsFilter(source);
     }
 
     @Bean

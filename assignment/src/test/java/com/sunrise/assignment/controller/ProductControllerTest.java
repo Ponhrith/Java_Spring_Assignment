@@ -9,19 +9,19 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class ProductControllerTest {
 
-    @Mock
-    private ProductService productService;
-
     @InjectMocks
     private ProductController productController;
+
+    @Mock
+    private ProductService productService;
 
     @BeforeEach
     void setUp() {
@@ -29,67 +29,63 @@ class ProductControllerTest {
     }
 
     @Test
-    void getAllProducts_shouldReturnEmptyList() {
-        when(productService.getAllProducts()).thenReturn(Collections.emptyList());
+    void testGetAllProducts() {
+        List<Product> products = Arrays.asList(new Product(), new Product());
+        when(productService.getAllProducts()).thenReturn(products);
 
         ResponseEntity<List<Product>> response = productController.getAllProducts();
 
-        assertThat(response.getBody()).isEmpty();
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(2, response.getBody().size());
         verify(productService, times(1)).getAllProducts();
     }
 
     @Test
-    void getProductById_shouldReturnProduct() {
+    void testGetProductById() {
         Product product = new Product();
         product.setId(1L);
-        product.setName("MacBook");
-
         when(productService.getProductById(1L)).thenReturn(product);
 
         ResponseEntity<Product> response = productController.getProductById(1L);
 
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("MacBook");
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1L, response.getBody().getId());
         verify(productService, times(1)).getProductById(1L);
     }
 
     @Test
-    void createProduct_shouldReturnCreatedProduct() {
+    void testCreateProduct() {
         Product product = new Product();
-        product.setId(1L);
-        product.setName("MacBook");
-
-        when(productService.createProduct(any(Product.class))).thenReturn(product);
+        product.setName("New Product");
+        when(productService.createProduct(product)).thenReturn(product);
 
         ResponseEntity<Product> response = productController.createProduct(product);
 
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("MacBook");
-        verify(productService, times(1)).createProduct(any(Product.class));
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("New Product", response.getBody().getName());
+        verify(productService, times(1)).createProduct(product);
     }
 
     @Test
-    void updateProduct_shouldUpdateAndReturnProduct() {
-        Product product = new Product();
-        product.setId(1L);
-        product.setName("Updated Product");
+    void testUpdateProduct() {
+        Product updatedProduct = new Product();
+        updatedProduct.setName("Updated Product");
+        when(productService.updateProduct(1L, updatedProduct)).thenReturn(updatedProduct);
 
-        when(productService.updateProduct(eq(1L), any(Product.class))).thenReturn(product);
+        ResponseEntity<Product> response = productController.updateProduct(1L, updatedProduct);
 
-        ResponseEntity<Product> response = productController.updateProduct(1L, product);
-
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("Updated Product");
-        verify(productService, times(1)).updateProduct(eq(1L), any(Product.class));
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Updated Product", response.getBody().getName());
+        verify(productService, times(1)).updateProduct(1L, updatedProduct);
     }
 
     @Test
-    void deleteProduct_shouldDeleteSuccessfully() {
+    void testDeleteProduct() {
         doNothing().when(productService).deleteProduct(1L);
 
         ResponseEntity<Void> response = productController.deleteProduct(1L);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(204);
+        assertEquals(204, response.getStatusCodeValue());
         verify(productService, times(1)).deleteProduct(1L);
     }
 }

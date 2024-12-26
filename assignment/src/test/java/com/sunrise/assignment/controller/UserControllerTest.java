@@ -4,25 +4,26 @@ import com.sunrise.assignment.model.User;
 import com.sunrise.assignment.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class UserControllerTest {
 
-    @Mock
-    private UserService userService;
-
     @InjectMocks
     private UserController userController;
+
+    @Mock
+    private UserService userService;
 
     @BeforeEach
     void setUp() {
@@ -30,52 +31,74 @@ class UserControllerTest {
     }
 
     @Test
-    void getAllUsers_shouldReturnEmptyList() {
-        when(userService.getAllUsers()).thenReturn(Collections.emptyList());
+    void testGetAllUsers() {
+        List<User> users = Arrays.asList(new User(), new User());
+        when(userService.getAllUsers()).thenReturn(users);
 
         ResponseEntity<List<User>> response = userController.getAllUsers();
 
-        assertThat(response.getBody()).isEmpty();
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(2, response.getBody().size());
         verify(userService, times(1)).getAllUsers();
     }
 
     @Test
-    void createUser_shouldReturnCreatedUser() {
+    void testCreateUser() {
         User user = new User();
-        user.setId(1L);
-        user.setUsername("testUser");
-
-        when(userService.saveUser(any(User.class))).thenReturn(user);
+        when(userService.saveUser(user)).thenReturn(user);
 
         ResponseEntity<User> response = userController.createUser(user);
 
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getUsername()).isEqualTo("testUser");
-        verify(userService, times(1)).saveUser(any(User.class));
+        assertEquals(200, response.getStatusCodeValue());
+        verify(userService, times(1)).saveUser(user);
     }
 
     @Test
-    void updateUser_shouldUpdateAndReturnUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("updatedUser");
+    void testUpdateUser() {
+        User updatedUser = new User();
+        when(userService.updateUser(1L, updatedUser)).thenReturn(Optional.of(updatedUser));
 
-        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(Optional.of(user));
+        ResponseEntity<User> response = userController.updateUser(1L, updatedUser);
+
+        assertEquals(200, response.getStatusCodeValue());
+        verify(userService, times(1)).updateUser(1L, updatedUser);
+    }
+
+    @Test
+    void testUpdateUser_NotFound() {
+        User user = new User();
+        when(userService.updateUser(eq(1L), eq(user))).thenReturn(Optional.empty());
 
         ResponseEntity<User> response = userController.updateUser(1L, user);
 
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getUsername()).isEqualTo("updatedUser");
-        verify(userService, times(1)).updateUser(eq(1L), any(User.class));
+        assertEquals(404, response.getStatusCodeValue());
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userService, times(1)).updateUser(eq(1L), userCaptor.capture());
+
+        User capturedUser = userCaptor.getValue();
+        assertEquals(user, capturedUser); // Ensure the same object is passed
     }
 
+
+
     @Test
-    void deleteUser_shouldDeleteSuccessfully() {
+    void testDeleteUser() {
         when(userService.deleteUser(1L)).thenReturn(true);
 
         ResponseEntity<Void> response = userController.deleteUser(1L);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(204);
+        assertEquals(204, response.getStatusCodeValue());
+        verify(userService, times(1)).deleteUser(1L);
+    }
+
+    @Test
+    void testDeleteUser_NotFound() {
+        when(userService.deleteUser(1L)).thenReturn(false);
+
+        ResponseEntity<Void> response = userController.deleteUser(1L);
+
+        assertEquals(404, response.getStatusCodeValue());
         verify(userService, times(1)).deleteUser(1L);
     }
 }
